@@ -1,0 +1,17 @@
+{
+	"name": "com.pirho.docgen",
+	"version": "0.0.1",
+	"displayName": "PiRho DocGen",
+	"description": "A documentation generator for Unity projects",
+	"unity": "2019.3",
+	"keywords": [ "documentaion" ],
+	"author": {
+		"name": "PiRho Soft",
+		"email": "admin@pirhosoft.com",
+		"url": "https://pirhosoft.com/"
+	},
+	"dependencies": {
+		"com.unity.addressables": "1.1.10",
+		"com.pirho.utilities": "2.1.0"
+	}
+}
