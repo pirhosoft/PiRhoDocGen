@@ -24,11 +24,16 @@ namespace PiRhoSoft.DocGen.Editor
 
 	public class DocumentationGenerator : ScriptableObject
 	{
-		public string OutputDirectory = "Documentation/Generated";
+		public string OutputDirectory = "docs/Generated";
 		[List] public DocumentationCategoryList Categories = new DocumentationCategoryList();
 		[Frame] public TableOfContents TableOfContents = new TableOfContents();
 		[Frame] public LogDescriptions LogDescriptions = new LogDescriptions();
 		[Frame] public HelpUrlValidator HelpUrls = new HelpUrlValidator();
+
+		void OnEnable()
+		{
+			_rootPath = new DirectoryInfo(Application.dataPath).Parent.FullName;
+		}
 
 		#region Tags
 
@@ -169,21 +174,11 @@ namespace PiRhoSoft.DocGen.Editor
 
 		#region File I/O
 
-		private static DirectoryInfo _rootPath;
-		public static string RootPath
-		{
-			get
-			{
-				if (_rootPath == null)
-					_rootPath = new DirectoryInfo(Application.dataPath);
-				
-				return _rootPath.Parent.FullName;
-			}
-		}
+		private static string _rootPath;
 
 		public static bool WriteFile(string folder, string filename, string content)
 		{
-			var outputFile = new FileInfo(Path.Combine(RootPath, folder, filename));
+			var outputFile = new FileInfo(Path.Combine(_rootPath, folder, filename));
 
 			try
 			{
