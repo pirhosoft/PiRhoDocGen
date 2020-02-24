@@ -18,7 +18,7 @@ namespace PiRhoSoft.DocGen.Editor
 		private Thread _thread = null;
 		private string _applicationPath;
 
-		[MenuItem("Window/PiRho Soft/Documentation Generator")]
+		[MenuItem("Window/PiRho DocGen/Documentation Generator")]
 		public static void Open()
 		{
 			GetWindow<DocumentationGeneratorWindow>("Documentation Generator").Show();
