@@ -92,6 +92,7 @@ namespace PiRhoSoft.DocGen.Editor
 			TableOfContents,
 			Log,
 			Help,
+			Templates,
 			Done,
 			Error
 		}
@@ -124,7 +125,7 @@ namespace PiRhoSoft.DocGen.Editor
 		{
 			try
 			{
-				var steps = _generator.Categories.Count + 3.0f;
+				var steps = _generator.Categories.Count + 4.0f;
 				var progress = 1.0f;
 
 				foreach (var category in _generator.Categories)
@@ -144,6 +145,10 @@ namespace PiRhoSoft.DocGen.Editor
 
 				SetProgress(GenerationState.Help, progress / steps, "Validating help urls");
 				_generator.HelpUrls.Validate();
+				progress += 1.0f;
+
+				SetProgress(GenerationState.Templates, progress / steps, "Creating processor templates");
+				_generator.GenerateProcessorTemplates();
 				progress += 1.0f;
 
 				SetProgress(GenerationState.Done, 1.0f, "Generation complete");

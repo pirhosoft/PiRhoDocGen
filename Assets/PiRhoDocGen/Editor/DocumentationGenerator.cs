@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using UnityEngine;
 
 namespace PiRhoSoft.DocGen.Editor
@@ -33,6 +34,24 @@ namespace PiRhoSoft.DocGen.Editor
 		void OnEnable()
 		{
 			_rootPath = new DirectoryInfo(Application.dataPath).Parent.FullName;
+		}
+
+		public void GenerateProcessorTemplates()
+		{
+			var allFile = new StringBuilder(
+@":multipage - level: 1
+:icons: font
+:source - highlighter: highlightjs
+:experimental:
+:example - caption!:
+:figure - caption!:
+:table - caption!:
+");
+
+			foreach (var category in Categories)
+				allFile.AppendLine($"include::{category.Id}.adoc[]");
+
+			WriteFile(OutputDirectory, "all.adoc", allFile.ToString());
 		}
 
 		#region Tags
