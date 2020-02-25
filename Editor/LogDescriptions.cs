@@ -15,6 +15,7 @@ namespace PiRhoSoft.DocGen.Editor
 
 		[EnumButtons] public DocumentationTypeCategory IncludedTypes = DocumentationTypeCategory.All;
 		[List] public DocumentationNamespaceList IncludedNamespaces = new DocumentationNamespaceList();
+		[List] public DocumentationNamespaceList ExcludedNamespaces = new DocumentationNamespaceList();
 
 		[TextArea(2, 8)] public string DocumentTemplate = "{Warnings}\n\n{Errors}";
 		[TextArea(2, 8)] public string MessageTemplate = "{Id} {Message}";
@@ -35,7 +36,7 @@ namespace PiRhoSoft.DocGen.Editor
 
 		public void Generate(string outputFolder)
 		{
-			var types = DocumentationGenerator.FindTypes(type => !type.IsEnum && DocumentationGenerator.IsTypeIncluded(type, IncludedTypes, IncludedNamespaces));
+			var types = DocumentationGenerator.FindTypes(type => !type.IsEnum && DocumentationGenerator.IsTypeIncluded(type, IncludedTypes, IncludedNamespaces, ExcludedNamespaces));
 
 			var warnings = GenerateLogDescriptions(types, _warningFieldSuffix, MessageTemplate);
 			var errors = GenerateLogDescriptions(types, _errorFieldSuffix, MessageTemplate);
