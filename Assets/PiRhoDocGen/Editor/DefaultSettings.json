@@ -1,0 +1,34 @@
+{
+    "OutputDirectory": "docs/Generated",
+    "Categories": {
+        "_items": []
+    },
+    "TableOfContents": {
+        "OutputFile": "toc.text",
+        "CodePath": "Scripts",
+        "Sections": {
+            "_items": []
+        },
+        "Templates": {
+            "File": "{Categories}",
+            "Category": "{CategoryName}/{CategoryNiceName}/{CategoryId}\n{Sections}",
+            "Section": "\t{SectionName}/{SectionNiceName}/{SectionId}\n{Types}\n",
+            "Type": "\t\t{TypeName}/{TypeNiceName}/{TypeId}: {TypeFilename}\n"
+        }
+    },
+    "LogDescriptions": {
+        "OutputFile": "log.txt",
+        "IncludedTypes": -1,
+        "IncludedNamespaces": {
+            "_items": []
+        },
+        "DocumentTemplate": "{Warnings}\n\n{Errors}",
+        "MessageTemplate": "{Id} {Message}"
+    },
+    "HelpUrls": {
+        "UrlRoot": "",
+        "IncludedNamespaces": {
+            "_items": []
+        }
+    }
+}

@@ -1,5 +1,6 @@
 ﻿using PiRhoSoft.Utilities.Editor;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using UnityEditor;
@@ -11,12 +12,20 @@ namespace PiRhoSoft.DocGen.Editor
 {
 	public class DocumentationGeneratorWindow : EditorWindow
 	{
+		private static readonly StringPreference _settingsFilePreference = new StringPreference("PiRho.DocGen.SettingsFile", "");
+
+		private static string _templatesFolder;
+		private static string _applicationPath;
+		private static string _rootPath;
+
+		private Dictionary<string, string> _templates;
+		private GenericMenu _templateMenu;
+
 		private DocumentationGenerator _generator;
 		private GenerationState _state = GenerationState.Waiting;
 		private string _message = string.Empty;
 		private float _progress = 0.0f;
 		private Thread _thread = null;
-		private string _applicationPath;
 
 		[MenuItem("Window/PiRho DocGen/Documentation Generator")]
 		public static void Open()
@@ -27,15 +36,19 @@ namespace PiRhoSoft.DocGen.Editor
 		void OnEnable()
 		{
 			_applicationPath = Application.dataPath;
+			_rootPath = new DirectoryInfo(_applicationPath).Parent.FullName;
 			_state = GenerationState.Waiting;
+			_templatesFolder = AssetHelper.GetScriptPath() + "/Templates";
 
-			LoadGenerator();
-			CreateElements();
+			LoadTemplates();
+			LoadGenerator(_settingsFilePreference.Value);
 		}
 
 		void OnDisable()
 		{
-			SaveGenerator();
+			if (_generator)
+				SaveGenerator(_generator, _settingsFilePreference.Value);
+
 			UnloadGenerator();
 		}
 
@@ -43,30 +56,6 @@ namespace PiRhoSoft.DocGen.Editor
 		{
 			if (_state != GenerationState.Waiting)
 				Repaint();
-		}
-
-		void CreateElements()
-		{
-			var serializedObject = new SerializedObject(_generator);
-
-			var generateButton = new Button(StartGeneration) { text = "Generate" };
-			var outputDirectoryProperty = serializedObject.FindProperty(nameof(DocumentationGenerator.OutputDirectory));
-			var categoriesProperty = serializedObject.FindProperty(nameof(DocumentationGenerator.Categories));
-			var tableOfContentsProperty = serializedObject.FindProperty(nameof(DocumentationGenerator.TableOfContents));
-			var logDescriptionsProperty = serializedObject.FindProperty(nameof(DocumentationGenerator.LogDescriptions));
-			var helpUrlsProperty = serializedObject.FindProperty(nameof(DocumentationGenerator.HelpUrls));
-
-			var scrollContainer = new ScrollView(ScrollViewMode.Vertical);
-
-			scrollContainer.Add(generateButton);
-			scrollContainer.Add(new PropertyField(outputDirectoryProperty));
-			scrollContainer.Add(new PropertyField(categoriesProperty));
-			scrollContainer.Add(new PropertyField(tableOfContentsProperty));
-			scrollContainer.Add(new PropertyField(logDescriptionsProperty));
-			scrollContainer.Add(new PropertyField(helpUrlsProperty));
-
-			rootVisualElement.Add(scrollContainer);
-			rootVisualElement.Bind(serializedObject);
 		}
 
 		void OnGUI()
@@ -80,6 +69,54 @@ namespace PiRhoSoft.DocGen.Editor
 			{
 				EditorUtility.DisplayProgressBar("Generating Documentation", _message, _progress);
 			}
+		}
+
+		void CreateElements()
+		{
+			rootVisualElement.Clear();
+
+			var scrollContainer = new ScrollView(ScrollViewMode.Vertical);
+
+			var loadContainer = new VisualElement();
+			loadContainer.style.flexDirection = FlexDirection.Row;
+
+			var newButton = new Button { text = "New" };
+			newButton.clicked += () => _templateMenu.DropDown(newButton.worldBound);
+
+			var loadButton = new Button(OpenSettings) { text = "Load" };
+
+			loadContainer.Add(newButton);
+			loadContainer.Add(loadButton);
+			scrollContainer.Add(loadContainer);
+
+			if (_generator)
+			{
+				var serializedObject = new SerializedObject(_generator);
+				var outputDirectoryProperty = serializedObject.FindProperty(nameof(DocumentationGenerator.OutputDirectory));
+				var categoriesProperty = serializedObject.FindProperty(nameof(DocumentationGenerator.Categories));
+				var tableOfContentsProperty = serializedObject.FindProperty(nameof(DocumentationGenerator.TableOfContents));
+				var logDescriptionsProperty = serializedObject.FindProperty(nameof(DocumentationGenerator.LogDescriptions));
+				var helpUrlsProperty = serializedObject.FindProperty(nameof(DocumentationGenerator.HelpUrls));
+
+				var generateContainer = new VisualElement();
+				generateContainer.style.flexDirection = FlexDirection.Row;
+
+				var generateButton = new Button(StartGeneration) { text = "Generate" };
+				var saveButton = new Button(() => SaveGenerator(_generator, _settingsFilePreference.Value)) { text = "Save" };
+
+				generateContainer.Add(generateButton);
+				generateContainer.Add(saveButton);
+
+				scrollContainer.Add(generateContainer);
+				scrollContainer.Add(new PropertyField(outputDirectoryProperty));
+				scrollContainer.Add(new PropertyField(categoriesProperty));
+				scrollContainer.Add(new PropertyField(tableOfContentsProperty));
+				scrollContainer.Add(new PropertyField(logDescriptionsProperty));
+				scrollContainer.Add(new PropertyField(helpUrlsProperty));
+				rootVisualElement.Bind(serializedObject);
+			}
+
+			rootVisualElement.Add(scrollContainer);
 		}
 
 		#region Generation
@@ -164,35 +201,112 @@ namespace PiRhoSoft.DocGen.Editor
 
 		#region File IO
 
-		private void LoadGenerator()
+		private void LoadTemplates()
 		{
-			var path = GetSettingsPath();
-			var content = File.ReadAllText(path);
+			_templates = new Dictionary<string, string>();
+			_templateMenu = new GenericMenu();
 
-			_generator = CreateInstance<DocumentationGenerator>();
+			var folder = Path.Combine(_rootPath, _templatesFolder);
+			var files = Directory.EnumerateFiles(folder, "*.json");
 
-			JsonUtility.FromJsonOverwrite(content, _generator);
+			foreach (var file in files)
+			{
+				try
+				{
+					var content = File.ReadAllText(file);
+					var name = Path.GetFileNameWithoutExtension(file);
+
+					_templates.Add(name, content);
+					_templateMenu.AddItem(new GUIContent(name), false, CreateNewSettings, name);
+				}
+				catch (Exception exception)
+				{
+					Debug.LogException(exception);
+				}
+			}
+		}
+
+		private void CreateNewSettings(object templateName)
+		{
+			var path = EditorUtility.SaveFilePanel("Create Settings File", _rootPath, "generator", "json");
+
+			if (!string.IsNullOrEmpty(path))
+				CreateGenerator(path, templateName.ToString());
+		}
+
+		private void OpenSettings()
+		{
+			var path = EditorUtility.OpenFilePanel("Open Settings File", _rootPath, "json");
+
+			if (!string.IsNullOrEmpty(path))
+				LoadGenerator(path);
+		}
+
+		private void CreateGenerator(string path, string templateName)
+		{
+			var generator = CreateInstance<DocumentationGenerator>();
+
+			if (_templates.TryGetValue(templateName, out string template))
+				JsonUtility.FromJsonOverwrite(template, generator);
+
+			if (SaveGenerator(generator, path))
+				SetGenerator(generator, path);
+			else
+				DestroyImmediate(generator);
+		}
+
+		private void LoadGenerator(string path)
+		{
+			var generator = (DocumentationGenerator)null;
+
+			try
+			{
+				var content = File.ReadAllText(path);
+				generator = CreateInstance<DocumentationGenerator>();
+				JsonUtility.FromJsonOverwrite(content, generator);
+				SetGenerator(generator, path);
+			}
+			catch
+			{
+			}
+
+			SetGenerator(generator, path);
 		}
 
 		private void UnloadGenerator()
 		{
-			DestroyImmediate(_generator);
-			_generator = null;
+			if (_generator != null)
+			{
+				DestroyImmediate(_generator);
+				_generator = null;
+			}
 		}
 
-		private void SaveGenerator()
+		private void SetGenerator(DocumentationGenerator generator, string path)
 		{
-			var path = GetSettingsPath();
-			var content = JsonUtility.ToJson(_generator, true);
-			var outputFile = new FileInfo(path);
+			UnloadGenerator();
 
-			Directory.CreateDirectory(outputFile.Directory.FullName);
-			File.WriteAllText(outputFile.FullName, content);
+			_settingsFilePreference.Value = path;
+			_generator = generator;
+
+			CreateElements();
 		}
 
-		private string GetSettingsPath()
+		private bool SaveGenerator(DocumentationGenerator generator, string path)
 		{
-			return AssetHelper.GetScriptPath() + "Settings.json";
+			try
+			{
+				var content = JsonUtility.ToJson(generator, true);
+				var outputFile = new FileInfo(path);
+
+				Directory.CreateDirectory(outputFile.Directory.FullName);
+				File.WriteAllText(outputFile.FullName, content);
+				return true;
+			}
+			catch
+			{
+				return false;
+			}
 		}
 
 		#endregion
