@@ -76,6 +76,7 @@ namespace PiRhoSoft.DocGen.Editor
 			rootVisualElement.Clear();
 
 			var scrollContainer = new ScrollView(ScrollViewMode.Vertical);
+			scrollContainer.style.flexGrow = 1;
 
 			var loadContainer = new VisualElement();
 			loadContainer.style.flexDirection = FlexDirection.Row;
@@ -88,6 +89,7 @@ namespace PiRhoSoft.DocGen.Editor
 			loadContainer.Add(newButton);
 			loadContainer.Add(loadButton);
 			scrollContainer.Add(loadContainer);
+			rootVisualElement.Add(scrollContainer);
 
 			if (_generator)
 			{
@@ -113,10 +115,9 @@ namespace PiRhoSoft.DocGen.Editor
 				scrollContainer.Add(new PropertyField(tableOfContentsProperty));
 				scrollContainer.Add(new PropertyField(logDescriptionsProperty));
 				scrollContainer.Add(new PropertyField(helpUrlsProperty));
+
 				rootVisualElement.Bind(serializedObject);
 			}
-
-			rootVisualElement.Add(scrollContainer);
 		}
 
 		#region Generation
@@ -257,20 +258,17 @@ namespace PiRhoSoft.DocGen.Editor
 
 		private void LoadGenerator(string path)
 		{
-			var generator = (DocumentationGenerator)null;
-
 			try
 			{
 				var content = File.ReadAllText(path);
-				generator = CreateInstance<DocumentationGenerator>();
+				var generator = CreateInstance<DocumentationGenerator>();
 				JsonUtility.FromJsonOverwrite(content, generator);
 				SetGenerator(generator, path);
 			}
 			catch
 			{
+				SetGenerator(null, string.Empty);
 			}
-
-			SetGenerator(generator, path);
 		}
 
 		private void UnloadGenerator()
