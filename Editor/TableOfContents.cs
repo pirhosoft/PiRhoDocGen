@@ -131,7 +131,7 @@ namespace PiRhoSoft.DocGen.Editor
 			var directory = info.Directory;
 			var name = directory.Name;
 
-			while (directory != null && directory.Name != "Engine" && directory.Name != "Editor" && directory.Name != "Scripts" && directory.Name != "Assets")
+			while (directory != null && directory.Name != "Runtime" && directory.Name != "Editor" && directory.Name != "Scripts" && directory.Name != "Assets")
 			{
 				name = directory.Name;
 				directory = directory.Parent;

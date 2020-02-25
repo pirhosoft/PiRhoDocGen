@@ -193,7 +193,7 @@ namespace PiRhoSoft.DocGen.Editor
 
 		#region File I/O
 
-		private static string _rootPath;
+		public static string _rootPath;
 
 		public static bool WriteFile(string folder, string filename, string content)
 		{
