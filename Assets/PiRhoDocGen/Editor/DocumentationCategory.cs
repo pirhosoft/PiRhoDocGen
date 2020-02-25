@@ -63,6 +63,7 @@ namespace PiRhoSoft.DocGen.Editor
 
 		[EnumButtons] public DocumentationTypeCategory IncludedTypes = DocumentationTypeCategory.All;
 		[List] public DocumentationNamespaceList IncludedNamespaces = new DocumentationNamespaceList();
+		[List] public DocumentationNamespaceList ExcludedNamespaces = new DocumentationNamespaceList();
 		[List] [Inline] public ExternalNamespaceList ExternalNamespaces = new ExternalNamespaceList();
 		[List] [Inline] public DocumentationSectionList Sections = new DocumentationSectionList();
 		[Frame] public TemplateSet Templates = new TemplateSet();
@@ -126,7 +127,7 @@ namespace PiRhoSoft.DocGen.Editor
 
 		private bool IsTypeIncluded(Type type)
 		{
-			return DocumentationGenerator.IsTypeIncluded(type, IncludedTypes, IncludedNamespaces);
+			return DocumentationGenerator.IsTypeIncluded(type, IncludedTypes, IncludedNamespaces, ExcludedNamespaces);
 		}
 
 		public string GetLink(Type type)
@@ -152,12 +153,12 @@ namespace PiRhoSoft.DocGen.Editor
 
 		private string GetTypeLink(Type type)
 		{
-			if (DocumentationGenerator.IsTypeIncluded(type, IncludedNamespaces))
+			if (DocumentationGenerator.IsTypeIncluded(type, IncludedNamespaces, ExcludedNamespaces))
 				return GetTypeLink(type, this, Templates.InternalLink);
 
 			foreach (var external in ExternalNamespaces)
 			{
-				if (DocumentationGenerator.IsTypeIncluded(type, new List<string> { external.Namespace }))
+				if (DocumentationGenerator.IsTypeIncluded(type, new List<string> { external.Namespace }, ExcludedNamespaces))
 					return GetTypeLink(type, this, external.LinkTemplate);
 			}
 

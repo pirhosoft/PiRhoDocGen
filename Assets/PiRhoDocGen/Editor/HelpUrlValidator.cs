@@ -13,10 +13,11 @@ namespace PiRhoSoft.DocGen.Editor
 
 		public string UrlRoot; // TODO: expose this as a regex or tag format or something
 		[List] public DocumentationNamespaceList IncludedNamespaces = new DocumentationNamespaceList();
-		
+		[List] public DocumentationNamespaceList ExcludedNamespaces = new DocumentationNamespaceList();
+
 		public void Validate()
 		{
-			var types = DocumentationGenerator.FindTypes(type => DocumentationGenerator.IsTypeIncluded(type, DocumentationTypeCategory.Asset | DocumentationTypeCategory.Behaviour, IncludedNamespaces));
+			var types = DocumentationGenerator.FindTypes(type => DocumentationGenerator.IsTypeIncluded(type, DocumentationTypeCategory.Asset | DocumentationTypeCategory.Behaviour, IncludedNamespaces, ExcludedNamespaces));
 
 			foreach (var type in types)
 			{

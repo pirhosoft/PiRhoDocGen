@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace PiRhoSoft.DocGen.Editor
@@ -34,24 +33,6 @@ namespace PiRhoSoft.DocGen.Editor
 		void OnEnable()
 		{
 			_rootPath = new DirectoryInfo(Application.dataPath).Parent.FullName;
-		}
-
-		public void GenerateProcessorTemplates()
-		{
-			var allFile = new StringBuilder(
-@":multipage - level: 1
-:icons: font
-:source - highlighter: highlightjs
-:experimental:
-:example - caption!:
-:figure - caption!:
-:table - caption!:
-");
-
-			foreach (var category in Categories)
-				allFile.AppendLine($"include::{category.Id}.adoc[]");
-
-			WriteFile(OutputDirectory, "all.adoc", allFile.ToString());
 		}
 
 		#region Tags
@@ -158,7 +139,7 @@ namespace PiRhoSoft.DocGen.Editor
 				.Where(predicate);
 		}
 
-		public static bool IsTypeIncluded(Type type, DocumentationTypeCategory includedTypes, IList<string> includedNamespaces)
+		public static bool IsTypeIncluded(Type type, DocumentationTypeCategory includedTypes, IList<string> includedNamespaces, IList<string> excludedNamespaces)
 		{
 			var includeAbstract = includedTypes.HasFlag(DocumentationTypeCategory.Abstract);
 			var includeClasses = includedTypes.HasFlag(DocumentationTypeCategory.Class);
@@ -175,14 +156,23 @@ namespace PiRhoSoft.DocGen.Editor
 			if (!includeClasses && !isBehavior && !isAsset && !type.IsEnum)
 				return false;
 
-			return IsTypeIncluded(type, includedNamespaces);
+			return IsTypeIncluded(type, includedNamespaces, excludedNamespaces);
 		}
 
-		public static bool IsTypeIncluded(Type type, IList<string> namespaces)
+		public static bool IsTypeIncluded(Type type, IList<string> included, IList<string> excluded)
 		{
-			foreach (var ns in namespaces)
+			if (type.Namespace == null)
+				return false;
+
+			foreach (var ns in excluded)
 			{
-				if (type.Namespace != null && type.Namespace.StartsWith(ns))
+				if (type.Namespace.EndsWith(ns))
+					return false;
+			}
+
+			foreach (var ns in included)
+			{
+				if (type.Namespace.StartsWith(ns))
 					return true;
 			}
 

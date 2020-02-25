@@ -28,13 +28,13 @@ namespace PiRhoSoft.DocGen.Editor
 		private const string _basesTag = "{Bases}";
 		private const string _sectionsTag = "{Sections}";
 
-		private static List<Type> _ignoredBases = new List<Type>
+		private static readonly List<Type> _ignoredBases = new List<Type>
 		{
 			typeof(object),
 			typeof(Enum)
 		};
 
-		private static List<Type> _ignoredInterfaces = new List<Type>
+		private static readonly List<Type> _ignoredInterfaces = new List<Type>
 		{
 			typeof(ISerializationCallbackReceiver)
 		};

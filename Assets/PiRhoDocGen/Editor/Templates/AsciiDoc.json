@@ -11,6 +11,9 @@
                 "IncludedNamespaces": {
                     "_items": []
                 },
+                "ExcludedNamespaces": {
+                    "_items": []
+                },
                 "ExternalNamespaces": {
                     "_items": [
                         {
@@ -66,6 +69,9 @@
                 "IncludeInTableOfContents": true,
                 "IncludedTypes": -1,
                 "IncludedNamespaces": {
+                    "_items": []
+                },
+                "ExcludedNamespaces": {
                     "_items": []
                 },
                 "ExternalNamespaces": {
@@ -203,12 +209,18 @@
         "IncludedNamespaces": {
             "_items": []
         },
+        "ExcludedNamespaces": {
+            "_items": []
+        },
         "DocumentTemplate": "[#manual/log-descriptions]\r\n## Log Descriptions\r\n\r\n### Warnings\r\n{Warnings}\r\n\n### Errors\r\n{Errors}",
         "MessageTemplate": "\r\n{Id}:: {Message}\r\n--\r\n--\r\n"
     },
     "HelpUrls": {
         "UrlRoot": "",
         "IncludedNamespaces": {
+            "_items": []
+        },
+        "ExcludedNamespaces": {
             "_items": []
         }
     }
